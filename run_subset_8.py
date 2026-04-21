@@ -193,6 +193,10 @@ def main():
                         help="CUDA threads-per-block in X (i dimension)")
     parser.add_argument("--tpb-y", type=int, default=16,
                         help="CUDA threads-per-block in Y (j dimension)")
+    parser.add_argument("--verify", action="store_true",
+                        help="Run a small correctness check: CUDA vs NumPy on one building")
+    parser.add_argument("--verify-tol", type=float, default=1e-6,
+                        help="Max abs-diff tolerance for --verify")
     parser.add_argument("--time", action="store_true",
                         help="Print timing information")
     args = parser.parse_args()
@@ -201,6 +205,29 @@ def main():
     threadsperblock = (args.tpb_x, args.tpb_y)
 
     building_ids = load_building_ids(load_dir)[:args.N]
+
+    if args.verify:
+        bid = building_ids[0] if building_ids else None
+        if bid is None:
+            raise SystemExit("No buildings selected (N=0).")
+
+        u0, interior_mask = load_data(load_dir, bid)
+        u_cuda = jacobi_fixed_cuda(
+            u0,
+            interior_mask,
+            max_iter=args.max_iter,
+            threadsperblock=threadsperblock,
+        )
+        u_numpy = jacobi_fixed_numpy(u0, interior_mask, max_iter=args.max_iter)
+
+        max_abs_diff = float(np.max(np.abs(u_cuda - u_numpy)))
+        print(f"# Verify building {bid}: max_abs_diff={max_abs_diff:.6e}")
+        if max_abs_diff > args.verify_tol:
+            raise SystemExit(
+                f"Verification failed: max_abs_diff {max_abs_diff:.6e} > tol {args.verify_tol:.6e}"
+            )
+        print("# Verification passed")
+        return
 
     # Warm-up compilation for CUDA outside the timed region.
     if args.backend == "cuda" and building_ids:
