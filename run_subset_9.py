@@ -15,32 +15,29 @@ def load_building_ids(load_dir):
         return f.read().splitlines()
 
 
-def load_data(load_dir, bid):
+def load_data_to_gpu(load_dir, bid):
     """
-    Loads one building:
-      - domain: 512x512 initial temperature grid
-      - interior mask: 512x512 boolean mask
-    Pads the domain to 514x514 to match the reference implementation.
+    Load one building on the host and transfer it to the GPU.
+    File I/O still happens on the CPU, but all later work stays on the GPU.
     """
     u = np.zeros((GRID_SIZE + 2, GRID_SIZE + 2), dtype=np.float64)
     u[1:-1, 1:-1] = np.load(join(load_dir, f"{bid}_domain.npy"))
     interior_mask = np.load(join(load_dir, f"{bid}_interior.npy")).astype(bool)
-    return u, interior_mask
+    return cp.asarray(u), cp.asarray(interior_mask)
 
 
 def jacobi_cupy(u, interior_mask, max_iter=20_000, atol=1e-4):
     """
-    Reference-style Jacobi solver adapted to CuPy.
+    Reference-style Jacobi solver fully on the GPU.
     """
-    u = cp.asarray(u).copy()
-    interior_mask = cp.asarray(interior_mask)
+    u = u.copy()
 
     for _ in range(max_iter):
         u_new = 0.25 * (
-            u[1:-1, :-2] +   # left
-            u[1:-1, 2:] +    # right
-            u[:-2, 1:-1] +   # up
-            u[2:, 1:-1]      # down
+            u[1:-1, :-2] +
+            u[1:-1, 2:] +
+            u[:-2, 1:-1] +
+            u[2:, 1:-1]
         )
 
         u_old_interior = u[1:-1, 1:-1][interior_mask]
@@ -52,16 +49,19 @@ def jacobi_cupy(u, interior_mask, max_iter=20_000, atol=1e-4):
         if float(delta) < atol:
             break
 
-    return cp.asnumpy(u)
+    return u
 
 
-def summary_stats(u, interior_mask):
+def summary_stats_cupy(u, interior_mask):
+    """
+    Compute the final summary statistics on the GPU and return Python scalars.
+    """
     u_interior = u[1:-1, 1:-1][interior_mask]
 
-    mean_temp = u_interior.mean()
-    std_temp = u_interior.std()
-    pct_above_18 = np.mean(u_interior > 18.0) * 100.0
-    pct_below_15 = np.mean(u_interior < 15.0) * 100.0
+    mean_temp = float(cp.mean(u_interior))
+    std_temp = float(cp.std(u_interior))
+    pct_above_18 = float(cp.mean(u_interior > 18.0) * 100.0)
+    pct_below_15 = float(cp.mean(u_interior < 15.0) * 100.0)
 
     return {
         "mean_temp": mean_temp,
@@ -72,7 +72,9 @@ def summary_stats(u, interior_mask):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Run wall-heating simulation on first N floorplans using CuPy.")
+    parser = argparse.ArgumentParser(
+        description="Run wall-heating simulation on first N floorplans using CuPy with GPU-side stats."
+    )
     parser.add_argument("N", type=int, nargs="?", default=1, help="Number of floorplans to process")
     parser.add_argument("--max-iter", type=int, default=20_000, help="Maximum Jacobi iterations")
     parser.add_argument("--atol", type=float, default=1e-4, help="Convergence tolerance")
@@ -81,9 +83,9 @@ def main():
 
     building_ids = load_building_ids(LOAD_DIR)[:args.N]
 
-    # Warm up CuPy and trigger any one-time GPU setup before timing.
+    # Warm up CuPy and trigger one-time GPU setup outside the timed region.
     if building_ids:
-        first_u0, first_mask = load_data(LOAD_DIR, building_ids[0])
+        first_u0, first_mask = load_data_to_gpu(LOAD_DIR, building_ids[0])
         _ = jacobi_cupy(first_u0, first_mask, max_iter=1, atol=args.atol)
         cp.cuda.Stream.null.synchronize()
 
@@ -93,9 +95,9 @@ def main():
     print("building_id,mean_temp,std_temp,pct_above_18,pct_below_15")
 
     for bid in building_ids:
-        u0, interior_mask = load_data(LOAD_DIR, bid)
+        u0, interior_mask = load_data_to_gpu(LOAD_DIR, bid)
         u = jacobi_cupy(u0, interior_mask, max_iter=args.max_iter, atol=args.atol)
-        stats = summary_stats(u, interior_mask)
+        stats = summary_stats_cupy(u, interior_mask)
 
         print(
             f"{bid},"
