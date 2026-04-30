@@ -1,2 +1,3 @@
 .DS_Store
-fred_files/
+fred_files/ 
+*__pycache__/*
