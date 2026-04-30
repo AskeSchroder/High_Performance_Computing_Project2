@@ -1,0 +1,95 @@
+##############  PRINT OUTPUT   ##################
+Host: n-62-18-13
+Hardware:
+NVIDIA A100 80GB PCIe
+#################################################
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 28326395: <cuda> in cluster <dcc> Done
+
+Job <cuda> was submitted from host <n-62-30-2> by user <s211930> in cluster <dcc> at Wed Apr 29 15:16:20 2026
+Job was executed on host(s) <4*n-62-18-13>, in queue <c02613>, as user <s211930> in cluster <dcc> at Wed Apr 29 15:25:31 2026
+</zhome/8c/6/163231> was used as the home directory.
+</zhome/8c/6/163231/python/task_8/cuda> was used as the working directory.
+Started at Wed Apr 29 15:25:31 2026
+Terminated at Wed Apr 29 15:25:59 2026
+Results reported at Wed Apr 29 15:25:59 2026
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/bash
+
+prefix="cuda" 
+current_dir="python/task_8/cuda" 
+py_path="run_subset_8.py"
+
+#job name 
+#BSUB -J cuda
+
+# Queue name 
+#BSUB -q c02613
+
+# Wall-clock time
+#BSUB -W 00:30
+
+# Ressources (memmory) 
+#BSUB -R "rusage[mem=10GB]"
+
+# Number of cpu cores 
+#BSUB -n 4
+
+# number of gpu's 
+#BSUB -gpu "num=1:mode=exclusive_process"
+
+#Number of hosts
+#BSUB -R "span[hosts=1]"
+
+# Output file (stdout) 
+#BSUB -o run%J.out
+
+# Output file (stderr)
+#BSUB -e run%J.err
+
+echo "##############  PRINT OUTPUT   ##################"
+echo "Host: $(hostname)"
+echo "Hardware:" 
+nvidia-smi --query-gpu=name --format=csv,noheader
+echo "#################################################"
+
+source /dtu/projects/02613_2025/conda/conda_init.sh
+conda activate 02613_2026
+
+cd /zhome/8c/6/163231/${current_dir} || exit 1
+
+python ${py_path} 100 --backend cuda --max-iter 5000 --time > ${prefix}.csv
+
+
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   25.76 sec.
+    Max Memory :                                 101 MB
+    Average Memory :                             101.00 MB
+    Total Requested Memory :                     40960.00 MB
+    Delta Memory :                               40859.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                10
+    Run time :                                   28 sec.
+    Turnaround time :                            579 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <run28326395.err> for stderr output of this job.
+
