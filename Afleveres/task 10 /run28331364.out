@@ -1,0 +1,67 @@
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 28331364: <cupy_nsys> in cluster <dcc> Done
+
+Job <cupy_nsys> was submitted from host <n-62-30-3> by user <s211930> in cluster <dcc> at Thu Apr 30 21:20:06 2026
+Job was executed on host(s) <4*n-62-18-13>, in queue <c02613>, as user <s211930> in cluster <dcc> at Thu Apr 30 21:20:26 2026
+</zhome/8c/6/163231> was used as the home directory.
+</zhome/8c/6/163231/python/task_10> was used as the working directory.
+Started at Thu Apr 30 21:20:26 2026
+Terminated at Thu Apr 30 21:35:05 2026
+Results reported at Thu Apr 30 21:35:05 2026
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/bash
+#BSUB -J cupy_nsys
+#BSUB -q c02613
+#BSUB -W 00:30
+#BSUB -R "rusage[mem=10GB]"
+#BSUB -n 4
+#BSUB -gpu "num=1:mode=exclusive_process"
+#BSUB -R "span[hosts=1]"
+#BSUB -o run%J.out
+#BSUB -e run%J.err
+
+prefix="cupy_nsys" 
+current_dir="/zhome/8c/6/163231/python/task_10/" 
+py_path="run_subset_10.py"
+
+source /dtu/projects/02613_2025/conda/conda_init.sh
+conda activate 02613_2026
+module swap cuda/13.0.2
+
+cd ${current_dir} || exit 1
+
+nsys profile -o ${prefix}_profile python ${py_path} 100 --time > ${prefix}.csv
+
+nsys stats ${prefix}_profile.nsys-rep > ${prefix}_stats.txt
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   838.00 sec.
+    Max Memory :                                 10437 MB
+    Average Memory :                             935.44 MB
+    Total Requested Memory :                     40960.00 MB
+    Delta Memory :                               30523.00 MB
+    Max Swap :                                   -
+    Max Processes :                              8
+    Max Threads :                                95
+    Run time :                                   879 sec.
+    Turnaround time :                            899 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <run28331364.err> for stderr output of this job.
+

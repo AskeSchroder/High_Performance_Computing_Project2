@@ -1,0 +1,71 @@
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 28331378: <11_improve_5000> in cluster <dcc> Done
+
+Job <11_improve_5000> was submitted from host <n-62-30-3> by user <s211930> in cluster <dcc> at Thu Apr 30 21:24:32 2026
+Job was executed on host(s) <4*n-62-18-13>, in queue <c02613>, as user <s211930> in cluster <dcc> at Thu Apr 30 21:36:55 2026
+</zhome/8c/6/163231> was used as the home directory.
+</zhome/8c/6/163231/python/task_11> was used as the working directory.
+Started at Thu Apr 30 21:36:55 2026
+Terminated at Thu Apr 30 21:37:37 2026
+Results reported at Thu Apr 30 21:37:37 2026
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/bash
+#BSUB -J 11_improve_5000
+#BSUB -q c02613
+#BSUB -W 00:30
+#BSUB -R "rusage[mem=10GB]"
+#BSUB -n 4
+#BSUB -gpu "num=1:mode=exclusive_process"
+#BSUB -R "span[hosts=1]"
+#BSUB -o run%J.out
+#BSUB -e run%J.err
+
+prefix="subset_11" 
+current_dir="/zhome/8c/6/163231/python/task_11/b5000" 
+py_path="run_subset_11.py" 
+
+source /dtu/projects/02613_2025/conda/conda_init.sh
+conda activate 02613_2026
+
+cd ${current_dir} || exit 1
+
+python ${py_path} 100 \
+	--tpb-x 16 \
+	--tpb-y 16 \
+	--large-block 5000 \
+	--medium-block 2500 \
+	--small-block 1250 \
+	--near-block 625 \
+	--time > ${prefix}.csv
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   39.81 sec.
+    Max Memory :                                 107 MB
+    Average Memory :                             107.00 MB
+    Total Requested Memory :                     40960.00 MB
+    Delta Memory :                               40853.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                10
+    Run time :                                   42 sec.
+    Turnaround time :                            785 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <run28331378.err> for stderr output of this job.
+

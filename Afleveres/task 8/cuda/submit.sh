@@ -21,3 +21,6 @@ cd /zhome/8c/6/163231/${current_dir} || exit 1
 python ${py_path} 100 --backend cuda --max-iter 5000 --time > ${prefix}.csv
 
 
+get -r task_8 task_9 task_11 task_12
+
+get -r * !(*.sqlite|*.nsys-rep)
