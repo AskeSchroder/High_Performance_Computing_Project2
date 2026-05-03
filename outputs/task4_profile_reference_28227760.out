@@ -1,0 +1,59 @@
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 28227760: <t4_prof> in cluster <dcc> Done
+
+Job <t4_prof> was submitted from host <n-62-30-2> by user <s225141> in cluster <dcc> at Fri Apr 17 05:16:08 2026
+Job was executed on host(s) <n-62-31-5>, in queue <hpc>, as user <s225141> in cluster <dcc> at Fri Apr 17 05:16:09 2026
+</zhome/a4/6/187727> was used as the home directory.
+</zhome/a4/6/187727/wall_heating> was used as the working directory.
+Started at Fri Apr 17 05:16:09 2026
+Terminated at Fri Apr 17 05:16:19 2026
+Results reported at Fri Apr 17 05:16:19 2026
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+# task4_profile_reference.sh
+#!/bin/bash
+#BSUB -J t4_prof
+#BSUB -q hpc
+#BSUB -n 1
+#BSUB -R "span[hosts=1]"
+#BSUB -R "rusage[mem=4GB]"
+#BSUB -W 00:45
+#BSUB -oo task4_profile_reference_%J.out
+#BSUB -eo task4_profile_reference_%J.err
+
+cd ~/wall_heating
+source ~/venv_hpc/bin/activate
+mkdir -p results
+
+python -m kernprof -l -v run_subset_4.py 1 > results/task4_profile_${LSB_JOBID}.txt 2>&1
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   7.08 sec.
+    Max Memory :                                 -
+    Average Memory :                             -
+    Total Requested Memory :                     4096.00 MB
+    Delta Memory :                               -
+    Max Swap :                                   -
+    Max Processes :                              -
+    Max Threads :                                -
+    Run time :                                   10 sec.
+    Turnaround time :                            11 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <task4_profile_reference_28227760.err> for stderr output of this job.
+

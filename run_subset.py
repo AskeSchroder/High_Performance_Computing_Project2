@@ -26,7 +26,6 @@ def load_data(load_dir, bid):
     interior_mask = np.load(join(load_dir, f"{bid}_interior.npy")).astype(bool)
     return u, interior_mask
 
-
 @profile
 def jacobi(u, interior_mask, max_iter=20_000, atol=1e-4):
     """

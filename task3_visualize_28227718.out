@@ -1,0 +1,54 @@
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 28227718: <t3_vis> in cluster <dcc> Exited
+
+Job <t3_vis> was submitted from host <hpclogin1> by user <s225141> in cluster <dcc> at Fri Apr 17 04:36:46 2026
+Job was executed on host(s) <n-62-31-5>, in queue <hpc>, as user <s225141> in cluster <dcc> at Fri Apr 17 04:36:48 2026
+</zhome/a4/6/187727> was used as the home directory.
+</zhome/a4/6/187727/wall_heating> was used as the working directory.
+Started at Fri Apr 17 04:36:48 2026
+Terminated at Fri Apr 17 04:36:49 2026
+Results reported at Fri Apr 17 04:36:49 2026
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/bash
+#BSUB -J t3_vis
+#BSUB -q hpc
+#BSUB -n 1
+#BSUB -R "span[hosts=1]"
+#BSUB -R "rusage[mem=8GB]"
+#BSUB -W 00:30
+#BSUB -oo task3_visualize_%J.out
+#BSUB -eo task3_visualize_%J.err
+
+python visualise_results.py 3 --outdir figures_task3
+
+------------------------------------------------------------
+
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time :                                   1.04 sec.
+    Max Memory :                                 -
+    Average Memory :                             -
+    Total Requested Memory :                     8192.00 MB
+    Delta Memory :                               -
+    Max Swap :                                   -
+    Max Processes :                              -
+    Max Threads :                                -
+    Run time :                                   1 sec.
+    Turnaround time :                            3 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <task3_visualize_28227718.err> for stderr output of this job.
+

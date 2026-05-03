@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/zhome/a4/6/187727/wall_heating/visualise_results.py", line 9, in <module>
+    from numba import njit
+ModuleNotFoundError: No module named 'numba'
