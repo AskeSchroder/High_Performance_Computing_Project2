@@ -1,5 +1,6 @@
 import argparse
 import math
+import multiprocessing as mp
 from os.path import join
 import time
 
@@ -440,6 +441,60 @@ def process_building(
     )
 
 
+def process_building_chunk(
+    gpu_id,
+    building_ids,
+    load_dir,
+    max_iter,
+    atol,
+    large_block,
+    medium_block,
+    small_block,
+    near_block,
+    backend,
+    threadsperblock,
+):
+    if backend == "cuda":
+        from numba import cuda
+
+        cuda.select_device(gpu_id)
+        workspace = None
+        if building_ids:
+            workspace = init_cuda_workspace()
+            u0, interior_mask = load_data(load_dir, building_ids[0])
+            _ = jacobi_adaptive_cuda(
+                u0,
+                interior_mask,
+                max_iter=1,
+                atol=atol,
+                large_block=1,
+                medium_block=1,
+                small_block=1,
+                near_block=1,
+                threadsperblock=threadsperblock,
+                workspace=workspace,
+            )
+    else:
+        workspace = None
+
+    return [
+        process_building(
+            bid,
+            load_dir=load_dir,
+            max_iter=max_iter,
+            atol=atol,
+            large_block=large_block,
+            medium_block=medium_block,
+            small_block=small_block,
+            near_block=near_block,
+            backend=backend,
+            threadsperblock=threadsperblock,
+            workspace=workspace,
+        )
+        for bid in building_ids
+    ]
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Wall-heating simulation using adaptive-block Jacobi (NumPy vs CUDA kernel)."
@@ -450,6 +505,8 @@ def main():
                         help="Directory containing building_ids.txt and the .npy files")
     parser.add_argument("--backend", choices=("cuda", "numpy"), default="cuda",
                         help="Implementation to run (default: cuda)")
+    parser.add_argument("--num-gpus", type=int, default=1,
+                        help="Number of GPUs to use for the CUDA backend")
     parser.add_argument("--max-iter", type=int, default=20_000,
                         help="Maximum number of Jacobi iterations")
     parser.add_argument("--atol", type=float, default=1e-4,
@@ -517,7 +574,7 @@ def main():
         print("# Verification passed")
         return
 
-    if args.backend == "cuda" and building_ids:
+    if args.backend == "cuda" and building_ids and args.num_gpus == 1:
         u0, interior_mask = load_data(load_dir, building_ids[0])
         workspace = init_cuda_workspace()
         _ = jacobi_adaptive_cuda(
@@ -538,22 +595,54 @@ def main():
     if args.time:
         t0 = time.perf_counter()
 
-    all_results = [
-        process_building(
-            bid,
-            load_dir=load_dir,
-            max_iter=args.max_iter,
-            atol=args.atol,
-            large_block=args.large_block,
-            medium_block=args.medium_block,
-            small_block=args.small_block,
-            near_block=args.near_block,
-            backend=args.backend,
-            threadsperblock=threadsperblock,
-            workspace=workspace,
-        )
-        for bid in building_ids
-    ]
+    if args.backend == "cuda" and args.num_gpus > 1 and building_ids:
+        worker_count = min(args.num_gpus, len(building_ids))
+        chunks = [
+            building_ids[i::worker_count]
+            for i in range(worker_count)
+            if building_ids[i::worker_count]
+        ]
+        ctx = mp.get_context("spawn")
+        with ctx.Pool(processes=worker_count) as pool:
+            chunk_results = pool.starmap(
+                process_building_chunk,
+                [
+                    (
+                        gpu_id,
+                        chunk,
+                        load_dir,
+                        args.max_iter,
+                        args.atol,
+                        args.large_block,
+                        args.medium_block,
+                        args.small_block,
+                        args.near_block,
+                        args.backend,
+                        threadsperblock,
+                    )
+                    for gpu_id, chunk in enumerate(chunks)
+                ],
+            )
+        order = {bid: idx for idx, bid in enumerate(building_ids)}
+        all_results = [item for chunk in chunk_results for item in chunk]
+        all_results.sort(key=lambda row: order[row[0]])
+    else:
+        all_results = [
+            process_building(
+                bid,
+                load_dir=load_dir,
+                max_iter=args.max_iter,
+                atol=args.atol,
+                large_block=args.large_block,
+                medium_block=args.medium_block,
+                small_block=args.small_block,
+                near_block=args.near_block,
+                backend=args.backend,
+                threadsperblock=threadsperblock,
+                workspace=workspace,
+            )
+            for bid in building_ids
+        ]
 
     if args.time:
         t1 = time.perf_counter()
@@ -565,6 +654,8 @@ def main():
     if args.time:
         print(f"# Total runtime: {t1 - t0:.3f} seconds")
         print(f"# Backend: {args.backend}")
+        if args.backend == "cuda":
+            print(f"# GPUs: {min(args.num_gpus, len(building_ids)) if building_ids else 0}")
         print(f"# Max iterations: {args.max_iter}")
         print(
             "# Adaptive blocks:"
