@@ -1,0 +1,73 @@
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 28336812: <12_p2> in cluster <dcc> Done
+
+Job <12_p2> was submitted from host <n-62-27-20> by user <s211930> in cluster <dcc> at Sat May  2 10:13:00 2026
+Job was executed on host(s) <8*n-62-20-16>, in queue <gpuv100>, as user <s211930> in cluster <dcc> at Sat May  2 10:13:00 2026
+</zhome/8c/6/163231> was used as the home directory.
+</zhome/8c/6/163231/python/task_12/parallel/p2> was used as the working directory.
+Started at Sat May  2 10:13:00 2026
+Terminated at Sat May  2 10:32:22 2026
+Results reported at Sat May  2 10:32:22 2026
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/bash
+#BSUB -J 12_p2
+#BSUB -q gpuv100
+#BSUB -W 01:00
+#BSUB -R "rusage[mem=10GB]"
+#BSUB -n 8
+#BSUB -gpu "num=2"
+#BSUB -R "span[hosts=1]"
+#BSUB -o run%J.out
+#BSUB -e run%J.err
+
+prefix="12_p2" 
+current_dir="/zhome/8c/6/163231/python/task_12/parallel/p2"
+py_path="run_subset_12_p.py" 
+
+source /dtu/projects/02613_2025/conda/conda_init.sh
+conda activate 02613_2026
+
+cd ${current_dir} || exit 1
+
+python ${py_path} 4571 \
+	--backend cuda \
+	--num-gpus 2 \
+	--tpb-x 16 \
+	--tpb-y 16 \
+	--large-block 2500 \
+	--medium-block 1250 \
+	--small-block 625 \
+	--near-block 312 \
+	--time > ${prefix}.csv
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   2304.00 sec.
+    Max Memory :                                 301 MB
+    Average Memory :                             279.55 MB
+    Total Requested Memory :                     81920.00 MB
+    Delta Memory :                               81619.00 MB
+    Max Swap :                                   -
+    Max Processes :                              7
+    Max Threads :                                17
+    Run time :                                   1162 sec.
+    Turnaround time :                            1162 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <run28336812.err> for stderr output of this job.
+

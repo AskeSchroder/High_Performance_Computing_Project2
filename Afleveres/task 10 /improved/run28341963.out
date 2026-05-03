@@ -1,22 +1,22 @@
 
 ------------------------------------------------------------
 Sender: LSF System <lsfadmin@hpc.dtu.dk>
-Subject: Job 28331375: <11_improve_10000> in cluster <dcc> Done
+Subject: Job 28341963: <cupy_improved> in cluster <dcc> Done
 
-Job <11_improve_10000> was submitted from host <n-62-30-3> by user <s211930> in cluster <dcc> at Thu Apr 30 21:23:04 2026
-Job was executed on host(s) <4*n-62-18-13>, in queue <c02613>, as user <s211930> in cluster <dcc> at Thu Apr 30 21:36:00 2026
+Job <cupy_improved> was submitted from host <n-62-30-4> by user <s211930> in cluster <dcc> at Sun May  3 18:27:48 2026
+Job was executed on host(s) <4*n-62-18-13>, in queue <c02613>, as user <s211930> in cluster <dcc> at Sun May  3 18:27:49 2026
 </zhome/8c/6/163231> was used as the home directory.
-</zhome/8c/6/163231/python/task_11> was used as the working directory.
-Started at Thu Apr 30 21:36:00 2026
-Terminated at Thu Apr 30 21:36:54 2026
-Results reported at Thu Apr 30 21:36:54 2026
+</zhome/8c/6/163231/python/task_10/improved> was used as the working directory.
+Started at Sun May  3 18:27:49 2026
+Terminated at Sun May  3 18:31:41 2026
+Results reported at Sun May  3 18:31:41 2026
 
 Your job looked like:
 
 ------------------------------------------------------------
 # LSBATCH: User input
 #!/bin/bash
-#BSUB -J 11_improve_10000
+#BSUB -J cupy_improved
 #BSUB -q c02613
 #BSUB -W 00:30
 #BSUB -R "rusage[mem=10GB]"
@@ -26,25 +26,16 @@ Your job looked like:
 #BSUB -o run%J.out
 #BSUB -e run%J.err
 
-prefix="subset_11"
-current_dir="/zhome/8c/6/163231/python/task_11/b10000" 
-py_path="run_subset_11.py" 
+prefix="cupy_improved" 
+current_dir="/zhome/8c/6/163231/python/task_10/improved" 
+py_path="run_subset_9_improved.py"
 
 source /dtu/projects/02613_2025/conda/conda_init.sh
 conda activate 02613_2026
 
 cd ${current_dir} || exit 1
 
-python ${py_path} 100 \
-	--tpb-x 16 \
-	--tpb-y 16 \
-	--large-block 10000 \
-	--medium-block 5000 \
-	--small-block 2500 \
-	--near-block 1250 \
-	--time > ${prefix}.csv
-
-
+python ${py_path} 100 --time > ${prefix}.csv
 
 ------------------------------------------------------------
 
@@ -52,7 +43,7 @@ Successfully completed.
 
 Resource usage summary:
 
-    CPU time :                                   51.77 sec.
+    CPU time :                                   229.87 sec.
     Max Memory :                                 108 MB
     Average Memory :                             108.00 MB
     Total Requested Memory :                     40960.00 MB
@@ -60,8 +51,8 @@ Resource usage summary:
     Max Swap :                                   -
     Max Processes :                              4
     Max Threads :                                10
-    Run time :                                   54 sec.
-    Turnaround time :                            830 sec.
+    Run time :                                   232 sec.
+    Turnaround time :                            233 sec.
 
 The output (if any) is above this job summary.
 
@@ -69,5 +60,5 @@ The output (if any) is above this job summary.
 
 PS:
 
-Read file <run28331375.err> for stderr output of this job.
+Read file <run28341963.err> for stderr output of this job.
 
